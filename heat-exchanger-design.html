@@ -97,30 +97,23 @@
     }
 
     .center { text-align: center; }
-    .right { text-align: right; }
-
-    .input-cell {
-      background: #fef9c3;
-      color: #111827;
-    }
-    .output-cell {
-      background: #d9f99d;
-      color: #022c22;
-    }
+    .right  { text-align: right; }
 
     input[type="number"] {
       width: 100%;
       padding: 0.25rem 0.3rem;
       border-radius: 4px;
-      border: 1px solid #9ca3af;
+      border: 1px solid #4b5563;
       font-size: 0.85rem;
+      background: #020617;
+      color: #e5e7eb;
     }
 
     select {
       width: 100%;
       padding: 0.25rem 0.3rem;
       border-radius: 4px;
-      border: 1px solid #9ca3af;
+      border: 1px solid #4b5563;
       font-size: 0.85rem;
       background: #020617;
       color: #e5e7eb;
@@ -181,97 +174,128 @@
   <main>
     <div class="container">
 
+      <!-- UNITS CONFIGURATION -->
       <div class="app">
-        <h2>1. Stream data and heat balance</h2>
+        <h2>1. Units & options</h2>
         <p>
-          Yellow cells are inputs; green cells are calculated. Units follow the
-          EngineeringToolbox example: temperatures in °C, mass flow in kg/h,
-          heat capacity in kcal/kg·°C, heat duty in kcal/h.
+          Choose the units for your inputs and outputs. The calculator converts
+          everything internally using the shared unit database.
         </p>
 
         <div class="scroll-x">
           <table>
             <tr>
-              <th rowspan="2">Item</th>
-              <th colspan="2" class="center">Stream</th>
-              <th rowspan="2">Units</th>
+              <th>Quantity</th>
+              <th>Unit</th>
             </tr>
             <tr>
-              <th class="center">Cold</th>
-              <th class="center">Hot</th>
+              <td>Temperatures (all T)</td>
+              <td><select id="unitTemp"></select></td>
             </tr>
-
             <tr>
-              <td>Input temperature, t(in)</td>
-              <td class="input-cell">
-                <input type="number" id="tColdIn" step="any" value="34">
-              </td>
-              <td class="input-cell">
-                <input type="number" id="tHotIn" step="any" value="72">
-              </td>
-              <td>°C</td>
+              <td>Mass flow rates (M)</td>
+              <td><select id="unitMassFlow"></select></td>
             </tr>
-
             <tr>
-              <td>Output temperature, t(out)</td>
-              <td class="input-cell">
-                <input type="number" id="tColdOut" step="any" value="44">
-              </td>
-              <td class="input-cell">
-                <input type="number" id="tHotOut" step="any" value="60">
-              </td>
-              <td>°C</td>
+              <td>Heat capacity Cp – cold stream</td>
+              <td><select id="unitCpCold"></select></td>
             </tr>
-
             <tr>
-              <td>Specific heat capacity, Cp</td>
-              <td class="input-cell">
-                <input type="number" id="cpCold" step="any" value="0.51">
-              </td>
-              <td class="input-cell">
-                <input type="number" id="cpHot" step="any" value="0.63">
-              </td>
-              <td>kcal/kg·°C</td>
+              <td>Heat capacity Cp – hot stream</td>
+              <td><select id="unitCpHot"></select></td>
             </tr>
-
             <tr>
-              <td>Mass flow rate, M</td>
-              <td class="input-cell">
-                <input type="number" id="mCold" step="any" value="140000">
-              </td>
-              <td class="output-cell right" id="mHotCell">‑</td>
-              <td>kg/h</td>
+              <td>Heat duty Q (output)</td>
+              <td><select id="unitQ"></select></td>
             </tr>
-
             <tr>
-              <td>Heat transfer rate, Q</td>
-              <td class="output-cell right" id="qColdCell">‑</td>
-              <td class="output-cell right" id="qHotCell">‑</td>
-              <td>kcal/h</td>
+              <td>Overall U – clean (input) &amp; design (output)</td>
+              <td><select id="unitU"></select></td>
+            </tr>
+            <tr>
+              <td>Fouling factors Rd1, Rd2</td>
+              <td><select id="unitFouling"></select></td>
+            </tr>
+            <tr>
+              <td>Heat transfer area A, A'</td>
+              <td><select id="unitArea"></select></td>
             </tr>
           </table>
         </div>
+      </div>
 
-        <button id="calcBtn">Calculate</button>
-
-        <h2 style="margin-top:1.25rem;">2. LMTD and heat transfer area</h2>
+      <!-- MAIN CALCULATOR -->
+      <div class="app">
+        <h2>2. Stream data and heat balance</h2>
+        <p>
+          Enter inlet/outlet temperatures, Cp, and cold‑side mass flow. The hot‑side
+          mass flow, heat duty, LMTD, design U, and required area are calculated.
+        </p>
 
         <div class="scroll-x">
           <table>
             <tr>
-              <th colspan="2">Flow regime</th>
+              <th>Item</th>
+              <th class="center">Cold stream</th>
+              <th class="center">Hot stream</th>
+              <th>Notes</th>
+            </tr>
+
+            <tr>
+              <td>Input temperature, t(in)</td>
+              <td><input type="number" id="tColdIn" step="any" value="34"></td>
+              <td><input type="number" id="tHotIn" step="any" value="72"></td>
+              <td>Uses temperature unit from section 1</td>
+            </tr>
+
+            <tr>
+              <td>Output temperature, t(out)</td>
+              <td><input type="number" id="tColdOut" step="any" value="44"></td>
+              <td><input type="number" id="tHotOut" step="any" value="60"></td>
+              <td>Uses temperature unit from section 1</td>
+            </tr>
+
+            <tr>
+              <td>Specific heat capacity, Cp</td>
+              <td><input type="number" id="cpCold" step="any" value="2100"></td>
+              <td><input type="number" id="cpHot" step="any" value="2600"></td>
+              <td>Units from section 1 (Cp – cold / Cp – hot)</td>
+            </tr>
+
+            <tr>
+              <td>Mass flow rate, M (cold stream)</td>
+              <td><input type="number" id="mCold" step="any" value="140000"></td>
+              <td id="mHotCell" class="right">‑</td>
+              <td>Mass flow unit from section 1</td>
+            </tr>
+
+            <tr>
+              <td>Heat transfer rate, Q</td>
+              <td id="qColdCell" class="right">‑</td>
+              <td id="qHotCell"  class="right">‑</td>
+              <td>Output unit from section 1</td>
+            </tr>
+          </table>
+        </div>
+
+        <h2 style="margin-top:1.25rem;">3. LMTD and heat transfer area</h2>
+
+        <div class="scroll-x">
+          <table>
+            <tr>
+              <th>Flow regime</th>
               <th>Value</th>
-              <th>Units</th>
+              <th>Notes</th>
             </tr>
             <tr>
-              <td colspan="2">
+              <td>
                 <select id="flowRegime">
                   <option value="counter">Counter‑current</option>
                   <option value="co">Co‑current</option>
                 </select>
               </td>
-              <td class="output-cell right" id="lmtdCell">‑</td>
-              <td>°C</td>
+              <td id="lmtdCell" class="right">‑</td>
+              <td>LMTD in temperature unit from section 1</td>
             </tr>
           </table>
 
@@ -279,62 +303,57 @@
             <tr>
               <th>Item</th>
               <th>Value</th>
-              <th>Units</th>
+              <th>Notes</th>
             </tr>
             <tr>
               <td>Overall heat transfer coeff. – clean, U</td>
-              <td class="input-cell">
-                <input type="number" id="uClean" step="any" value="717">
-              </td>
-              <td>kcal/m²·h·°C</td>
+              <td><input type="number" id="uClean" step="any" value="800"></td>
+              <td>Unit from section 1 (U)</td>
             </tr>
             <tr>
               <td>Fouling coefficient, cold side, Rd1</td>
-              <td class="input-cell">
-                <input type="number" id="rd1" step="any" value="0.0005">
-              </td>
-              <td>m²·h·°C/kcal</td>
+              <td><input type="number" id="rd1" step="any" value="0.0002"></td>
+              <td>Unit from section 1 (fouling)</td>
             </tr>
             <tr>
               <td>Fouling coefficient, hot side, Rd2</td>
-              <td class="input-cell">
-                <input type="number" id="rd2" step="any" value="0.0004">
-              </td>
-              <td>m²·h·°C/kcal</td>
+              <td><input type="number" id="rd2" step="any" value="0.0004"></td>
+              <td>Unit from section 1 (fouling)</td>
             </tr>
             <tr>
               <td>Overall heat transfer coeff. – design, Ud</td>
-              <td class="output-cell right" id="udCell">‑</td>
-              <td>kcal/m²·h·°C</td>
+              <td id="udCell" class="right">‑</td>
+              <td>Reported in U unit from section 1</td>
             </tr>
             <tr>
               <td>Effective heat transfer surface, A</td>
-              <td class="output-cell right" id="areaEffectiveCell">‑</td>
-              <td>m²</td>
+              <td id="areaEffectiveCell" class="right">‑</td>
+              <td>Area unit from section 1</td>
             </tr>
             <tr>
               <td>Design margin on surface</td>
-              <td class="input-cell">
-                <input type="number" id="margin" step="any" value="20">
-              </td>
+              <td><input type="number" id="margin" step="any" value="20"></td>
               <td>%</td>
             </tr>
             <tr>
               <td>Actual heat transfer surface, A'</td>
-              <td class="output-cell right" id="areaActualCell">‑</td>
-              <td>m²</td>
+              <td id="areaActualCell" class="right">‑</td>
+              <td>Area unit from section 1</td>
             </tr>
           </table>
         </div>
+
+        <button id="calcBtn">Calculate</button>
       </div>
 
+      <!-- NOTES & REFERENCE TABLES -->
       <div class="app">
-        <h2>3. Notes</h2>
+        <h2>4. Notes</h2>
 
         <p class="note">
           <strong>Note 1.</strong> Flow rate in Stream 2 (hot side) is calculated from
           heat transfer in Stream 1 (cold side), assuming
-          <code>Q<sub>1</sub> = Q<sub>2</sub></code> and using Stream&nbsp;2 properties.
+          <code>Q<sub>cold</sub> = Q<sub>hot</sub></code>.
         </p>
 
         <p class="note">
@@ -539,104 +558,79 @@
     </div>
   </main>
 
+  <!-- Shared unit conversions -->
+  <script src="chemeng-units.js"></script>
+
+  <!-- Calculator logic -->
   <script>
-    function calcHeatExchanger() {
-      const tColdIn = parseFloat(document.getElementById("tColdIn").value);
-      const tColdOut = parseFloat(document.getElementById("tColdOut").value);
-      const tHotIn = parseFloat(document.getElementById("tHotIn").value);
-      const tHotOut = parseFloat(document.getElementById("tHotOut").value);
-      const cpCold = parseFloat(document.getElementById("cpCold").value);
-      const cpHot = parseFloat(document.getElementById("cpHot").value);
-      const mCold = parseFloat(document.getElementById("mCold").value);
-
-      const flowRegime = document.getElementById("flowRegime").value;
-      const uClean = parseFloat(document.getElementById("uClean").value);
-      const rd1 = parseFloat(document.getElementById("rd1").value);
-      const rd2 = parseFloat(document.getElementById("rd2").value);
-      const marginPct = parseFloat(document.getElementById("margin").value);
-
-      const qColdCell = document.getElementById("qColdCell");
-      const qHotCell = document.getElementById("qHotCell");
-      const mHotCell = document.getElementById("mHotCell");
-      const lmtdCell = document.getElementById("lmtdCell");
-      const udCell = document.getElementById("udCell");
-      const areaEffCell = document.getElementById("areaEffectiveCell");
-      const areaActCell = document.getElementById("areaActualCell");
-
-      function safe(val) {
-        return Number.isFinite(val) ? val : NaN;
+    // Helper to fill a <select> with units from a category
+    function fillUnitSelect(selectEl, category, defaultKey) {
+      const units = getUnitsForCategory(category);
+      units.forEach(u => {
+        const opt = document.createElement("option");
+        opt.value = u.key;
+        opt.textContent = u.label;
+        selectEl.appendChild(opt);
+      });
+      if (defaultKey) {
+        const idx = units.findIndex(u => u.key === defaultKey);
+        if (idx >= 0) selectEl.selectedIndex = idx;
       }
-
-      // 1. Heat duty from cold side
-      const dT_cold = safe(tColdOut - tColdIn);
-      const Q = safe(mCold * cpCold * Math.abs(dT_cold)); // kcal/h
-
-      if (Number.isFinite(Q)) {
-        qColdCell.textContent = Q.toLocaleString(undefined, { maximumFractionDigits: 2 });
-        qHotCell.textContent = Q.toLocaleString(undefined, { maximumFractionDigits: 2 });
-      } else {
-        qColdCell.textContent = "‑";
-        qHotCell.textContent = "‑";
-      }
-
-      // 2. Hot-side mass flow from Q
-      const dT_hot = safe(tHotIn - tHotOut); // note sign; magnitude used in denominator
-      let mHot = NaN;
-      if (Number.isFinite(Q) && cpHot && Math.abs(dT_hot) > 0) {
-        mHot = Q / (cpHot * Math.abs(dT_hot));
-      }
-      mHotCell.textContent = Number.isFinite(mHot)
-        ? mHot.toLocaleString(undefined, { maximumFractionDigits: 2 })
-        : "‑";
-
-      // 3. LMTD
-      let dt1, dt2;
-      if (flowRegime === "counter") {
-        dt1 = safe(tHotIn - tColdOut);
-        dt2 = safe(tHotOut - tColdIn);
-      } else {
-        dt1 = safe(tHotIn - tColdIn);
-        dt2 = safe(tHotOut - tColdOut);
-      }
-
-      let lmtd = NaN;
-      if (Number.isFinite(dt1) && Number.isFinite(dt2) && dt1 !== 0 && dt2 !== 0) {
-        if (Math.abs(dt1 - dt2) < 1e-9) {
-          lmtd = dt1;
-        } else {
-          lmtd = (dt1 - dt2) / Math.log(dt1 / dt2);
-        }
-      }
-      if (Number.isFinite(lmtd)) {
-        lmtdCell.textContent = lmtd.toFixed(2);
-      } else {
-        lmtdCell.textContent = "‑";
-      }
-
-      // 4. Design U with fouling
-      let Ud = NaN;
-      if (uClean && rd1 >= 0 && rd2 >= 0) {
-        const Rtot = (1 / uClean) + rd1 + rd2;
-        Ud = 1 / Rtot;
-      }
-      udCell.textContent = Number.isFinite(Ud) ? Ud.toFixed(1) : "‑";
-
-      // 5. Required area A = Q / (Ud * LMTD)
-      let Aeff = NaN;
-      if (Number.isFinite(Q) && Number.isFinite(Ud) && Number.isFinite(lmtd) && Ud > 0 && Math.abs(lmtd) > 0) {
-        Aeff = Q / (Ud * lmtd);
-      }
-      areaEffCell.textContent = Number.isFinite(Aeff) ? Aeff.toFixed(2) : "‑";
-
-      // 6. Area with margin
-      let Aact = NaN;
-      if (Number.isFinite(Aeff) && Number.isFinite(marginPct)) {
-        Aact = Aeff * (1 + marginPct / 100);
-      }
-      areaActCell.textContent = Number.isFinite(Aact) ? Aact.toFixed(2) : "‑";
     }
 
-    document.getElementById("calcBtn").addEventListener("click", calcHeatExchanger);
-  </script>
-</body>
-</html>
+    // Populate unit dropdowns
+    const unitTemp      = document.getElementById("unitTemp");
+    const unitMassFlow  = document.getElementById("unitMassFlow");
+    const unitCpCold    = document.getElementById("unitCpCold");
+    const unitCpHot     = document.getElementById("unitCpHot");
+    const unitQ         = document.getElementById("unitQ");
+    const unitU         = document.getElementById("unitU");
+    const unitFouling   = document.getElementById("unitFouling");
+    const unitArea      = document.getElementById("unitArea");
+
+    fillUnitSelect(unitTemp,     "Temperature", "°C");
+    fillUnitSelect(unitMassFlow, "Mass Flow", "kg/h");
+    fillUnitSelect(unitCpCold,   "Heat Capacity, Entropy", "J/(kg·K)");
+    fillUnitSelect(unitCpHot,    "Heat Capacity, Entropy", "J/(kg·K)");
+    fillUnitSelect(unitQ,        "Power, Heat Flow, Duty", "kW");
+    fillUnitSelect(unitU,        "Heat Transfer", "W/(m2·K)");
+    fillUnitSelect(unitFouling,  "Heat Resistance, Fouling", "m2·K/W");
+    fillUnitSelect(unitArea,     "Area", "m2");
+
+    function calcHeatExchanger() {
+      const tUnit   = unitTemp.value;
+      const mUnit   = unitMassFlow.value;
+      const cpCUnit = unitCpCold.value;
+      const cpHUnit = unitCpHot.value;
+      const qUnit   = unitQ.value;
+      const uUnit   = unitU.value;
+      const rUnit   = unitFouling.value;
+      const aUnit   = unitArea.value;
+
+      const tColdIn  = parseFloat(document.getElementById("tColdIn").value);
+      const tColdOut = parseFloat(document.getElementById("tColdOut").value);
+      const tHotIn   = parseFloat(document.getElementById("tHotIn").value);
+      const tHotOut  = parseFloat(document.getElementById("tHotOut").value);
+      const cpCold   = parseFloat(document.getElementById("cpCold").value);
+      const cpHot    = parseFloat(document.getElementById("cpHot").value);
+      const mCold    = parseFloat(document.getElementById("mCold").value);
+
+      const flowRegime = document.getElementById("flowRegime").value;
+      const uCleanVal  = parseFloat(document.getElementById("uClean").value);
+      const rd1Val     = parseFloat(document.getElementById("rd1").value);
+      const rd2Val     = parseFloat(document.getElementById("rd2").value);
+      const marginPct  = parseFloat(document.getElementById("margin").value);
+
+      const qColdCell    = document.getElementById("qColdCell");
+      const qHotCell     = document.getElementById("qHotCell");
+      const mHotCell     = document.getElementById("mHotCell");
+      const lmtdCell     = document.getElementById("lmtdCell");
+      const udCell       = document.getElementById("udCell");
+      const areaEffCell  = document.getElementById("areaEffectiveCell");
+      const areaActCell  = document.getElementById("areaActualCell");
+
+      function safe(x) { return Number.isFinite(x) ? x : NaN; }
+
+      // ---- Convert basics to internal units ----
+      // Temperatures → °C for LMTD (ΔT in °C = ΔT in K)
+      const Tc_in  = convertUnits("Temperature
