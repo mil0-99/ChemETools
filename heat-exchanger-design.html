@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>ChemEng Tools – Heat Exchanger Design</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #020617;
+      color: #e5e7eb;
+      margin: 0;
+    }
+    header {
+      border-bottom: 1px solid #111827;
+      background: #020617;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem 2rem;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.75rem 0;
+    }
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: radial-gradient(circle at 30% 30%, #38bdf8, #1d4ed8);
+    }
+    h1 {
+      font-size: 1.25rem;
+      margin: 0;
+    }
+    a.nav-link {
+      font-size: 0.86rem;
+      color: #93c5fd;
+      text-decoration: none;
+    }
+    a.nav-link:hover { color: #bfdbfe; }
+
+    main .container {
+      display: block;
+    }
+
+    .app {
+      width: 100%;
+      background: #020617;
+      border-radius: 12px;
+      padding: 1.5rem 1.8rem 1.5rem;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.6);
+      border: 1px solid #111827;
+      margin-bottom: 1.5rem;
+    }
+
+    h2 {
+      font-size: 1.1rem;
+      margin-top: 0;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      margin-top: 0;
+      margin-bottom: 0.75rem;
+      font-size: 0.9rem;
+      color: #9ca3af;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+    }
+    th, td {
+      border: 1px solid #111827;
+      padding: 0.3rem 0.4rem;
+      vertical-align: middle;
+    }
+    th {
+      background: #030712;
+      font-weight: 600;
+    }
+
+    .center { text-align: center; }
+    .right { text-align: right; }
+
+    .input-cell {
+      background: #fef9c3;
+      color: #111827;
+    }
+    .output-cell {
+      background: #d9f99d;
+      color: #022c22;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 0.25rem 0.3rem;
+      border-radius: 4px;
+      border: 1px solid #9ca3af;
+      font-size: 0.85rem;
+    }
+
+    select {
+      width: 100%;
+      padding: 0.25rem 0.3rem;
+      border-radius: 4px;
+      border: 1px solid #9ca3af;
+      font-size: 0.85rem;
+      background: #020617;
+      color: #e5e7eb;
+    }
+
+    button {
+      margin-top: 0.75rem;
+      padding: 0.55rem 1.4rem;
+      border-radius: 999px;
+      border: none;
+      background: #2563eb;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    button:hover { background: #1d4ed8; }
+
+    .note {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-title {
+      margin-top: 1.25rem;
+      margin-bottom: 0.35rem;
+      font-size: 0.98rem;
+      font-weight: 600;
+    }
+
+    .scroll-x {
+      overflow-x: auto;
+    }
+
+    code {
+      background: #0b1120;
+      padding: 0.05rem 0.25rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container brand">
+      <div class="brand-left">
+        <div class="logo"></div>
+        <div>
+          <h1>Heat Exchanger Design</h1>
+          <span style="font-size:0.8rem;color:#9ca3af;">Single‑shell, steady‑state duty and required area</span>
+        </div>
+      </div>
+      <a class="nav-link" href="index.html">← Back to all tools</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <div class="app">
+        <h2>1. Stream data and heat balance</h2>
+        <p>
+          Yellow cells are inputs; green cells are calculated. Units follow the
+          EngineeringToolbox example: temperatures in °C, mass flow in kg/h,
+          heat capacity in kcal/kg·°C, heat duty in kcal/h.
+        </p>
+
+        <div class="scroll-x">
+          <table>
+            <tr>
+              <th rowspan="2">Item</th>
+              <th colspan="2" class="center">Stream</th>
+              <th rowspan="2">Units</th>
+            </tr>
+            <tr>
+              <th class="center">Cold</th>
+              <th class="center">Hot</th>
+            </tr>
+
+            <tr>
+              <td>Input temperature, t(in)</td>
+              <td class="input-cell">
+                <input type="number" id="tColdIn" step="any" value="34">
+              </td>
+              <td class="input-cell">
+                <input type="number" id="tHotIn" step="any" value="72">
+              </td>
+              <td>°C</td>
+            </tr>
+
+            <tr>
+              <td>Output temperature, t(out)</td>
+              <td class="input-cell">
+                <input type="number" id="tColdOut" step="any" value="44">
+              </td>
+              <td class="input-cell">
+                <input type="number" id="tHotOut" step="any" value="60">
+              </td>
+              <td>°C</td>
+            </tr>
+
+            <tr>
+              <td>Specific heat capacity, Cp</td>
+              <td class="input-cell">
+                <input type="number" id="cpCold" step="any" value="0.51">
+              </td>
+              <td class="input-cell">
+                <input type="number" id="cpHot" step="any" value="0.63">
+              </td>
+              <td>kcal/kg·°C</td>
+            </tr>
+
+            <tr>
+              <td>Mass flow rate, M</td>
+              <td class="input-cell">
+                <input type="number" id="mCold" step="any" value="140000">
+              </td>
+              <td class="output-cell right" id="mHotCell">‑</td>
+              <td>kg/h</td>
+            </tr>
+
+            <tr>
+              <td>Heat transfer rate, Q</td>
+              <td class="output-cell right" id="qColdCell">‑</td>
+              <td class="output-cell right" id="qHotCell">‑</td>
+              <td>kcal/h</td>
+            </tr>
+          </table>
+        </div>
+
+        <button id="calcBtn">Calculate</button>
+
+        <h2 style="margin-top:1.25rem;">2. LMTD and heat transfer area</h2>
+
+        <div class="scroll-x">
+          <table>
+            <tr>
+              <th colspan="2">Flow regime</th>
+              <th>Value</th>
+              <th>Units</th>
+            </tr>
+            <tr>
+              <td colspan="2">
+                <select id="flowRegime">
+                  <option value="counter">Counter‑current</option>
+                  <option value="co">Co‑current</option>
+                </select>
+              </td>
+              <td class="output-cell right" id="lmtdCell">‑</td>
+              <td>°C</td>
+            </tr>
+          </table>
+
+          <table>
+            <tr>
+              <th>Item</th>
+              <th>Value</th>
+              <th>Units</th>
+            </tr>
+            <tr>
+              <td>Overall heat transfer coeff. – clean, U</td>
+              <td class="input-cell">
+                <input type="number" id="uClean" step="any" value="717">
+              </td>
+              <td>kcal/m²·h·°C</td>
+            </tr>
+            <tr>
+              <td>Fouling coefficient, cold side, Rd1</td>
+              <td class="input-cell">
+                <input type="number" id="rd1" step="any" value="0.0005">
+              </td>
+              <td>m²·h·°C/kcal</td>
+            </tr>
+            <tr>
+              <td>Fouling coefficient, hot side, Rd2</td>
+              <td class="input-cell">
+                <input type="number" id="rd2" step="any" value="0.0004">
+              </td>
+              <td>m²·h·°C/kcal</td>
+            </tr>
+            <tr>
+              <td>Overall heat transfer coeff. – design, Ud</td>
+              <td class="output-cell right" id="udCell">‑</td>
+              <td>kcal/m²·h·°C</td>
+            </tr>
+            <tr>
+              <td>Effective heat transfer surface, A</td>
+              <td class="output-cell right" id="areaEffectiveCell">‑</td>
+              <td>m²</td>
+            </tr>
+            <tr>
+              <td>Design margin on surface</td>
+              <td class="input-cell">
+                <input type="number" id="margin" step="any" value="20">
+              </td>
+              <td>%</td>
+            </tr>
+            <tr>
+              <td>Actual heat transfer surface, A'</td>
+              <td class="output-cell right" id="areaActualCell">‑</td>
+              <td>m²</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="app">
+        <h2>3. Notes</h2>
+
+        <p class="note">
+          <strong>Note 1.</strong> Flow rate in Stream 2 (hot side) is calculated from
+          heat transfer in Stream 1 (cold side), assuming
+          <code>Q<sub>1</sub> = Q<sub>2</sub></code> and using Stream&nbsp;2 properties.
+        </p>
+
+        <p class="note">
+          <strong>Note 2.</strong> Logarithmic Mean Temperature Difference (LMTD):
+          <br>
+          <code>LMTD = (Δt1 − Δt2) / ln(Δt1 / Δt2)</code>
+          <br>
+          For counter‑current flow:
+          <code>Δt1 = t(hot,in) − t(cold,out)</code>,
+          <code>Δt2 = t(hot,out) − t(cold,in)</code>.
+          <br>
+          For co‑current flow:
+          <code>Δt1 = t(hot,in) − t(cold,in)</code>,
+          <code>Δt2 = t(hot,out) − t(cold,out)</code>.
+        </p>
+
+        <p class="note">
+          <strong>Note 3.</strong> Typical values of overall heat transfer coefficient
+          U are given in the table below (EngineeringToolbox, “Heat Exchangers –
+          Heat Transfer Coefficients”).
+        </p>
+
+        <div class="scroll-x">
+          <table>
+            <tr>
+              <th>Type</th>
+              <th>Application</th>
+              <th class="center">U (W/m²·K)</th>
+              <th class="center">U (Btu/ft²·°F·h)</th>
+            </tr>
+            <tr>
+              <td rowspan="6">Tubular, heating or cooling</td>
+              <td>Gases at atmospheric pressure inside and outside tubes</td>
+              <td class="center">5 – 35</td>
+              <td class="center">1 – 6</td>
+            </tr>
+            <tr>
+              <td>Gases at high pressure inside and outside tubes</td>
+              <td class="center">150 – 500</td>
+              <td class="center">25 – 90</td>
+            </tr>
+            <tr>
+              <td>Liquid outside (inside) and gas at atmospheric pressure inside (outside)</td>
+              <td class="center">15 – 70</td>
+              <td class="center">3 – 15</td>
+            </tr>
+            <tr>
+              <td>Gas at high pressure inside and liquid outside tubes</td>
+              <td class="center">200 – 400</td>
+              <td class="center">35 – 70</td>
+            </tr>
+            <tr>
+              <td>Liquids inside and outside tubes</td>
+              <td class="center">150 – 1200</td>
+              <td class="center">25 – 200</td>
+            </tr>
+            <tr>
+              <td>Steam outside and liquid inside tubes</td>
+              <td class="center">300 – 1200</td>
+              <td class="center">50 – 200</td>
+            </tr>
+
+            <tr>
+              <td rowspan="2">Tubular, condensation</td>
+              <td>Steam outside and cooling water inside tubes</td>
+              <td class="center">1500 – 4000</td>
+              <td class="center">250 – 700</td>
+            </tr>
+            <tr>
+              <td>Organic vapors or ammonia outside and cooling water inside tubes</td>
+              <td class="center">300 – 1200</td>
+              <td class="center">50 – 200</td>
+            </tr>
+
+            <tr>
+              <td rowspan="3">Tubular, evaporation</td>
+              <td>Steam outside and high‑viscous liquid inside tubes, natural circulation</td>
+              <td class="center">300 – 900</td>
+              <td class="center">50 – 150</td>
+            </tr>
+            <tr>
+              <td>Steam outside and low‑viscous liquid inside tubes, natural circulation</td>
+              <td class="center">600 – 1700</td>
+              <td class="center">100 – 300</td>
+            </tr>
+            <tr>
+              <td>Steam outside and liquid inside tubes, forced circulation</td>
+              <td class="center">900 – 3000</td>
+              <td class="center">150 – 500</td>
+            </tr>
+
+            <tr>
+              <td rowspan="9">Air‑cooled heat exchangers</td>
+              <td>Cooling of water</td>
+              <td class="center">600 – 750</td>
+              <td class="center">100 – 130</td>
+            </tr>
+            <tr>
+              <td>Cooling of liquid light hydrocarbons</td>
+              <td class="center">400 – 550</td>
+              <td class="center">70 – 95</td>
+            </tr>
+            <tr>
+              <td>Cooling of tar</td>
+              <td class="center">30 – 60</td>
+              <td class="center">5 – 10</td>
+            </tr>
+            <tr>
+              <td>Cooling of air or flue gas</td>
+              <td class="center">60 – 180</td>
+              <td class="center">10 – 30</td>
+            </tr>
+            <tr>
+              <td>Cooling of hydrocarbon gas</td>
+              <td class="center">200 – 450</td>
+              <td class="center">35 – 80</td>
+            </tr>
+            <tr>
+              <td>Condensation of low‑pressure steam</td>
+              <td class="center">750 – 850</td>
+              <td class="center">125 – 150</td>
+            </tr>
+            <tr>
+              <td>Condensation of organic vapors</td>
+              <td class="center">350 – 500</td>
+              <td class="center">65 – 90</td>
+            </tr>
+            <tr>
+              <td>Plate heat exchanger, liquid to liquid</td>
+              <td class="center">1000 – 4000</td>
+              <td class="center">150 – 700</td>
+            </tr>
+            <tr>
+              <td>Spiral heat exchanger, liquid to liquid / condensing vapor to liquid</td>
+              <td class="center">700 – 3500</td>
+              <td class="center">125 – 700</td>
+            </tr>
+          </table>
+        </div>
+
+        <p class="note">
+          <strong>Note 4.</strong> Typical values of fouling factor (EngineeringToolbox,
+          “Fouling and Reduced Heat Transfer”).
+        </p>
+
+        <div class="scroll-x">
+          <table>
+            <tr>
+              <th>Fluid</th>
+              <th class="center">Fouling factor (m²·K/W)</th>
+              <th class="center">Fouling factor (ft²·°F·h/Btu)</th>
+            </tr>
+            <tr>
+              <td>Alcohol vapors</td>
+              <td class="center">0.000090</td>
+              <td class="center">0.000511</td>
+            </tr>
+            <tr>
+              <td>Boiler feed water, treated above 325 K</td>
+              <td class="center">0.000200</td>
+              <td class="center">0.001136</td>
+            </tr>
+            <tr>
+              <td>Fuel oil</td>
+              <td class="center">0.000900</td>
+              <td class="center">0.005110</td>
+            </tr>
+            <tr>
+              <td>Industrial air</td>
+              <td class="center">0.000400</td>
+              <td class="center">0.002271</td>
+            </tr>
+            <tr>
+              <td>Quenching oil</td>
+              <td class="center">0.000700</td>
+              <td class="center">0.003975</td>
+            </tr>
+            <tr>
+              <td>Refrigerating liquid</td>
+              <td class="center">0.000200</td>
+              <td class="center">0.001136</td>
+            </tr>
+            <tr>
+              <td>Seawater below 325 K</td>
+              <td class="center">0.000090</td>
+              <td class="center">0.000511</td>
+            </tr>
+            <tr>
+              <td>Seawater above 325 K</td>
+              <td class="center">0.000200</td>
+              <td class="center">0.001136</td>
+            </tr>
+            <tr>
+              <td>Steam</td>
+              <td class="center">0.000090</td>
+              <td class="center">0.000511</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    function calcHeatExchanger() {
+      const tColdIn = parseFloat(document.getElementById("tColdIn").value);
+      const tColdOut = parseFloat(document.getElementById("tColdOut").value);
+      const tHotIn = parseFloat(document.getElementById("tHotIn").value);
+      const tHotOut = parseFloat(document.getElementById("tHotOut").value);
+      const cpCold = parseFloat(document.getElementById("cpCold").value);
+      const cpHot = parseFloat(document.getElementById("cpHot").value);
+      const mCold = parseFloat(document.getElementById("mCold").value);
+
+      const flowRegime = document.getElementById("flowRegime").value;
+      const uClean = parseFloat(document.getElementById("uClean").value);
+      const rd1 = parseFloat(document.getElementById("rd1").value);
+      const rd2 = parseFloat(document.getElementById("rd2").value);
+      const marginPct = parseFloat(document.getElementById("margin").value);
+
+      const qColdCell = document.getElementById("qColdCell");
+      const qHotCell = document.getElementById("qHotCell");
+      const mHotCell = document.getElementById("mHotCell");
+      const lmtdCell = document.getElementById("lmtdCell");
+      const udCell = document.getElementById("udCell");
+      const areaEffCell = document.getElementById("areaEffectiveCell");
+      const areaActCell = document.getElementById("areaActualCell");
+
+      function safe(val) {
+        return Number.isFinite(val) ? val : NaN;
+      }
+
+      // 1. Heat duty from cold side
+      const dT_cold = safe(tColdOut - tColdIn);
+      const Q = safe(mCold * cpCold * Math.abs(dT_cold)); // kcal/h
+
+      if (Number.isFinite(Q)) {
+        qColdCell.textContent = Q.toLocaleString(undefined, { maximumFractionDigits: 2 });
+        qHotCell.textContent = Q.toLocaleString(undefined, { maximumFractionDigits: 2 });
+      } else {
+        qColdCell.textContent = "‑";
+        qHotCell.textContent = "‑";
+      }
+
+      // 2. Hot-side mass flow from Q
+      const dT_hot = safe(tHotIn - tHotOut); // note sign; magnitude used in denominator
+      let mHot = NaN;
+      if (Number.isFinite(Q) && cpHot && Math.abs(dT_hot) > 0) {
+        mHot = Q / (cpHot * Math.abs(dT_hot));
+      }
+      mHotCell.textContent = Number.isFinite(mHot)
+        ? mHot.toLocaleString(undefined, { maximumFractionDigits: 2 })
+        : "‑";
+
+      // 3. LMTD
+      let dt1, dt2;
+      if (flowRegime === "counter") {
+        dt1 = safe(tHotIn - tColdOut);
+        dt2 = safe(tHotOut - tColdIn);
+      } else {
+        dt1 = safe(tHotIn - tColdIn);
+        dt2 = safe(tHotOut - tColdOut);
+      }
+
+      let lmtd = NaN;
+      if (Number.isFinite(dt1) && Number.isFinite(dt2) && dt1 !== 0 && dt2 !== 0) {
+        if (Math.abs(dt1 - dt2) < 1e-9) {
+          lmtd = dt1;
+        } else {
+          lmtd = (dt1 - dt2) / Math.log(dt1 / dt2);
+        }
+      }
+      if (Number.isFinite(lmtd)) {
+        lmtdCell.textContent = lmtd.toFixed(2);
+      } else {
+        lmtdCell.textContent = "‑";
+      }
+
+      // 4. Design U with fouling
+      let Ud = NaN;
+      if (uClean && rd1 >= 0 && rd2 >= 0) {
+        const Rtot = (1 / uClean) + rd1 + rd2;
+        Ud = 1 / Rtot;
+      }
+      udCell.textContent = Number.isFinite(Ud) ? Ud.toFixed(1) : "‑";
+
+      // 5. Required area A = Q / (Ud * LMTD)
+      let Aeff = NaN;
+      if (Number.isFinite(Q) && Number.isFinite(Ud) && Number.isFinite(lmtd) && Ud > 0 && Math.abs(lmtd) > 0) {
+        Aeff = Q / (Ud * lmtd);
+      }
+      areaEffCell.textContent = Number.isFinite(Aeff) ? Aeff.toFixed(2) : "‑";
+
+      // 6. Area with margin
+      let Aact = NaN;
+      if (Number.isFinite(Aeff) && Number.isFinite(marginPct)) {
+        Aact = Aeff * (1 + marginPct / 100);
+      }
+      areaActCell.textContent = Number.isFinite(Aact) ? Aact.toFixed(2) : "‑";
+    }
+
+    document.getElementById("calcBtn").addEventListener("click", calcHeatExchanger);
+  </script>
+</body>
+</html>
