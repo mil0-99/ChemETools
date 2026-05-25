@@ -4,7 +4,6 @@
 // ---------- CENTRAL DATA ----------
 
 const UnitData = {
-  // MECHANICAL / BASIC
   Length: {
     base: "meter",
     units: {
@@ -95,7 +94,6 @@ const UnitData = {
     }
   },
 
-  // THERMO / HEAT-RELATED
   "Energy, Work": {
     base: "joule",
     units: {
@@ -321,7 +319,6 @@ const UnitData = {
 // Absolute temperature units handled separately
 const TemperatureUnits = ["°C", "°F", "K", "R"];
 
-// Full category list (matches your homepage / image)
 const UnitCategoryList = [
   "Acceleration",
   "Amount of Substance",
@@ -375,7 +372,7 @@ function getUnitsForCategory(category) {
   }));
 }
 
-// ---------- CORE CONVERSIONS ----------
+// ---------- special conversions ----------
 
 function convertTemperature(value, from, to) {
   let K;
@@ -421,7 +418,6 @@ function convertLinear(category, value, fromKey, toKey) {
   return valueInBase / to.factor;
 }
 
-// Main entry point for calculators
 function convertUnits(category, value, fromKey, toKey) {
   if (category === "Temperature") {
     return convertTemperature(value, fromKey, toKey);
