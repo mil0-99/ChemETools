@@ -145,7 +145,7 @@ const UnitData = {
     units: {
       "W/m2":        { label: "W/m²",        factor: 1 },
       "kW/m2":       { label: "kW/m²",       factor: 1000 },
-      "Btu/(h·ft2)": { label: "Btu/(h·ft²)", factor: 3.15459 // W/m² }
+      "Btu/(h·ft2)": { label: "Btu/(h·ft²)", factor: 3.15459 }
     }
   },
 
