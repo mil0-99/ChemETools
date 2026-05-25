@@ -7,18 +7,21 @@
   <link rel="stylesheet" href="website-style.css">
 </head>
 <body>
-  <header>
-    <div class="container brand">
-      <div class="brand-left">
-        <div class="logo"></div>
-        <div>
-          <h1>Heat Exchanger Design</h1>
-        </div>
-      </div>
-      <a class="nav-link" href="index.html">← Back to all tools</a>
-    </div>
-  </header>
-
+  <div id="tool-nav-container"></div>
+  <script>
+    (function () {
+      var container = document.getElementById("tool-nav-container");
+      if (!container) return;
+      fetch("tool-nav.html")
+        .then(function (res) { return res.text(); })
+        .then(function (html) {
+          container.innerHTML = html;
+        })
+        .catch(function (err) {
+          console.error("Failed to load navigation:", err);
+        });
+    })();
+  </script>
   <main>
     <div class="container">
 
