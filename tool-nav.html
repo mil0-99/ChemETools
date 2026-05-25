@@ -1,0 +1,121 @@
+<!-- tool-nav.html -->
+<nav class="chemeng-nav">
+  <div class="chemeng-nav-inner">
+    <div class="chemeng-nav-left">
+      <div class="chemeng-nav-logo"></div>
+      <div class="chemeng-nav-text">
+        <div class="chemeng-nav-title">ChemEng Tools</div>
+        <div class="chemeng-nav-subtitle">Quick calculators for chemical engineers</div>
+      </div>
+    </div>
+    <div class="chemeng-nav-links">
+      <a href="index.html" class="chemeng-nav-link">Home</a>
+      <a href="unit-converter.html" class="chemeng-nav-link">Unit converter</a>
+      <a href="heat-exchanger-design.html" class="chemeng-nav-link">HX design</a>
+      <a href="heat-exchanger-rating.html" class="chemeng-nav-link">HX rating</a>
+      <!-- Add more tools here later -->
+    </div>
+  </div>
+</nav>
+
+<style>
+  /* Scoped navbar styles */
+  .chemeng-nav {
+    border-bottom: 1px solid #111827;
+    background: #020617;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+  .chemeng-nav-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0.6rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .chemeng-nav-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+  .chemeng-nav-logo {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: radial-gradient(circle at 30% 30%, #38bdf8, #1d4ed8);
+    flex-shrink: 0;
+  }
+  .chemeng-nav-text {
+    display: flex;
+    flex-direction: column;
+  }
+  .chemeng-nav-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #e5e7eb;
+  }
+  .chemeng-nav-subtitle {
+    font-size: 0.7rem;
+    color: #9ca3af;
+  }
+  .chemeng-nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    justify-content: flex-end;
+  }
+  .chemeng-nav-link {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    text-decoration: none;
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .chemeng-nav-link:hover {
+    color: #e5e7eb;
+    border-color: #1f2937;
+    background: rgba(15,23,42,0.85);
+  }
+
+  /* Simple active-state based on URL match */
+  .chemeng-nav-link[href$=".html"].chemeng-nav-active {
+    color: #f9fafb;
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+  }
+
+  @media (max-width: 640px) {
+    .chemeng-nav-inner {
+      flex-direction: column;
+      align-items: flex-start;
+      padding-bottom: 0.45rem;
+    }
+    .chemeng-nav-links {
+      justify-content: flex-start;
+    }
+  }
+</style>
+
+<script>
+  // Mark current page as active in the nav
+  (function () {
+    try {
+      var path = location.pathname.split("/").pop() || "index.html";
+      var links = document.querySelectorAll(".chemeng-nav-link[href$='.html']");
+      links.forEach(function (a) {
+        var href = a.getAttribute("href");
+        if (href === path) {
+          a.classList.add("chemeng-nav-active");
+        }
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  })();
+</script>
