@@ -7,19 +7,22 @@
   <link rel="stylesheet" href="website-style.css">
 </head>
 <body>
-  <header>
-    <div class="container brand">
-      <div class="brand-left">
-        <div class="logo"></div>
-        <div>
-          <h1>Unit Converter</h1>
-          <span style="font-size:0.8rem;color:#9ca3af;">Part of ChemEng Tools</span>
-        </div>
-      </div>
-      <a class="nav-link" href="index.html">← Back to all tools</a>
-    </div>
-  </header>
-
+  <div id="tool-nav-container"></div>
+  <script>
+    // Load shared navbar from tool-nav.html
+    (function () {
+      var container = document.getElementById("tool-nav-container");
+      if (!container) return;
+      fetch("tool-nav.html")
+        .then(function (res) { return res.text(); })
+        .then(function (html) {
+          container.innerHTML = html;
+        })
+        .catch(function (err) {
+          console.error("Failed to load navigation:", err);
+        });
+    })();
+  </script>
   <main>
     <div class="container">
       <div class="scroll-x">
