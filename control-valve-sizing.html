@@ -285,6 +285,16 @@
   <script>
     const $ = id => document.getElementById(id);
 
+    function toCvFromKv(kv) { // Note 5: Kv = 0.856 * Cv // => Cv = Kv / 0.856 return kv / 0.856; }
+
+    function kvFromSI(Q_m3_per_h, dP_kPa) { 
+      // Definition: Kv = m^3/h of water at 15 °C with ΔP = 1 bar. // General: Kv_required = Q(m3/h) / sqrt(ΔP(bar)) 
+      const dP_bar = dP_kPa / 100.0;
+      if (!(Number.isFinite(Q_m3_per_h) && Q_m3_per_h > 0 && Number.isFinite(dP_bar) && dP_bar > 0))
+        return NaN;
+      return Q_m3_per_h / Math.sqrt(dP_bar); 
+    }
+    
     // Build valve options from the table
     function readCvTable() {
       const rows = Array.from(document.querySelectorAll("#cv-table tr")).slice(1); // skip header
@@ -413,49 +423,44 @@
 
       let Cv_liq_final = NaN;
 
-      if (Number.isFinite(W_in) && Number.isFinite(rho_in) && rho_in>0 && Number.isFinite(dPk) && dPk>0) {
+      if (Number.isFinite(W_in) && Number.isFinite(rho_in) && rho_in > 0 && Number.isFinite(dPk) && dPk > 0) {
+        // Convert to SI bases for Kv math
         const rho = convertUnits("Density", rho_in, uRho, "kg/m3");
-        const Wkh  = convertUnits("Mass Flow", W_in, uW, "kg/h");
+        const Wkg_h = convertUnits("Mass Flow", W_in, uW, "kg/h"); // kg/h
+        const Wkg_s = convertUnits("Mass Flow", W_in, uW, "kg/s"); // kg/s (for completeness)
 
-        // V = W/ρ
-        const V_m3h = Wkh / rho;
-        $("V_liq").value = Number.isFinite(V_m3h)
-          ? convertUnits("Volume Flow", V_m3h, "m3/h", $("u_V_liq").value).toFixed(3) : "";
-
-        // ΔPs
-        let dPs = NaN;
+        // Volumetric flow in m3/h from W and rho
+        const V_m3h = Wkg_h / rho; $("V_liq").value = Number.isFinite(V_m3h) ? convertUnits("Volume Flow", V_m3h, "m3/h", $("u_V_liq").value).toFixed(3) : "";
+        
+        // ΔPs on absolute kPa
+        let dPs_kPa = NaN;
         if (Number.isFinite(Pv_in) && Number.isFinite(Pc_in)) {
-          const Pv = convertUnits("Pressure", Pv_in, uPv, "kPa (A)");
-          const Pc = convertUnits("Pressure", Pc_in, uPc, "kPa (A)");
-          if (Pc > 0) dPs = P1k - (0.96 - 0.28*Math.sqrt(Pv/Pc)) * Pv;
-        }
-        $("dPs_liq").value = Number.isFinite(dPs)
-          ? convertUnits("Pressure", dPs, "kPa (A)", $("u_dPs_liq").value).toFixed(3) : "";
+          const Pv_kPaA = convertUnits("Pressure", Pv_in, uPv, "kPa (A)");
+          const Pc_kPaA = convertUnits("Pressure", Pc_in, uPc, "kPa (A)");
+          if (Pc_kPaA > 0) dPs_kPa = P1k - (0.96 - 0.28 * Math.sqrt(Pv_kPaA / Pc_kPaA)) * Pv_kPaA; 
+        } $("dPs_liq").value = Number.isFinite(dPs_kPa) ? convertUnits("Pressure", dPs_kPa, "kPa (A)", $("u_dPs_liq").value).toFixed(3) : "";
 
-        // Decide regime
-        let regime = "";
-        if (Number.isFinite(dPs) && dPs>0 && dPk >= Fl*Fl*dPs) regime = "Critical (choked)";
-        else if (dPk>0) regime = "Subcritical";
+        // Regime decision: Subcritical 
+        if ΔP < Fl^2 * ΔPs (all in kPa) let regime = "";
+        if (Number.isFinite(dPs_kPa) && dPs_kPa > 0 && dPk >= Fl * Fl * dPs_kPa) regime = "Critical (choked)";
+        else if (dPk > 0) regime = "Subcritical";
         $("liqType").value = regime;
 
-        // Apply sheet formulas exactly (W in kg/h, ρ kg/m3, ΔP in kPa)
-        let Cv_sub = NaN, Cv_crit = NaN;
-        Cv_sub = 1.6e-3 * Wkh / Math.sqrt(rho * dPk);
-        if (Number.isFinite(dPs) && dPs>0) {
-          Cv_crit = 1.6e-3 * Wkh / (Fl * Math.sqrt(rho * dPs));
-        }
+        // Exact per Note 5 (via Kv): // Kv_sub = Q(m3/h) / sqrt(ΔP(bar)) // Kv_crit = Q(m3/h) / (Fl * sqrt(ΔPs(bar))) 
+        const Kv_sub = kvFromSI(V_m3h, dPk);
+        const Kv_crit = Number.isFinite(dPs_kPa) && dPs_kPa > 0 ? (V_m3h / (Fl * Math.sqrt(dPs_kPa / 100.0))) : NaN;
 
-        $("Cv_liq_sub").value  = Number.isFinite(Cv_sub)  ? Cv_sub.toFixed(3)  : "";
+        // Convert Kv to Cv
+        const Cv_sub = Number.isFinite(Kv_sub) ? toCvFromKv(Kv_sub) : NaN;
+        const Cv_crit = Number.isFinite(Kv_crit) ? toCvFromKv(Kv_crit) : NaN;
+        $("Cv_liq_sub").value = Number.isFinite(Cv_sub) ? Cv_sub.toFixed(3) : "";
         $("Cv_liq_crit").value = Number.isFinite(Cv_crit) ? Cv_crit.toFixed(3) : "";
-
         Cv_liq_final = (regime === "Critical (choked)") ? Cv_crit : Cv_sub;
         $("Cv_liq_final").value = Number.isFinite(Cv_liq_final) ? Cv_liq_final.toFixed(3) : "";
-
-        // Opening
+        // Opening 
         updateOpening("Cv_liq_final", "Cv_selected_liq", "opening_liq");
       } else {
-        ["V_liq","dPs_liq","liqType","Cv_liq_sub","Cv_liq_crit","Cv_liq_final","opening_liq"]
-          .forEach(id => { $(id).value = ""; });
+        ["V_liq","dPs_liq","liqType","Cv_liq_sub","Cv_liq_crit","Cv_liq_final","opening_liq"] .forEach(id => { $(id).value = ""; });
       }
 
       // GAS
