@@ -66,24 +66,6 @@
     const errorDiv = document.getElementById("error");
     const convertBtn = document.getElementById("convertBtn");
 
-    function convert() {
-      errorDiv.textContent = "";
-      const category = categorySelect.value;
-      const fromKey = fromSelect.value;
-      const toKey = toSelect.value;
-      const valStr = valueInput.value;
-
-      if (!valStr) {
-        errorDiv.textContent = "Please enter a value.";
-        return;
-      }
-
-      const value = Number(valStr);
-      if (!Number.isFinite(value)) {
-        errorDiv.textContent = "Invalid numeric value.";
-        return;
-      }
-
       let result;
       try {
         result = NumOne + NumTwo;
@@ -96,13 +78,8 @@
     }
     
     convertBtn.addEventListener("click", convert);
-    valueInput.addEventListener("keydown", e => {
-      if (e.key === "Enter") convert();
-    });
     
     // Initial state
-    categorySelect.value = "Length";
-    populateUnits();
   </script>
 </body>
 </html>
