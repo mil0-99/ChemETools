@@ -440,8 +440,8 @@
           if (Pc_kPaA > 0) dPs_kPa = P1k - (0.96 - 0.28 * Math.sqrt(Pv_kPaA / Pc_kPaA)) * Pv_kPaA; 
         } $("dPs_liq").value = Number.isFinite(dPs_kPa) ? convertUnits("Pressure", dPs_kPa, "kPa (A)", $("u_dPs_liq").value).toFixed(3) : "";
 
-        // Regime decision: Subcritical 
-        if ΔP < Fl^2 * ΔPs (all in kPa) let regime = "";
+        // Regime decision: Subcritical if ΔP < Fl^2 * ΔPs (all in kPa)
+        let regime = "";
         if (Number.isFinite(dPs_kPa) && dPs_kPa > 0 && dPk >= Fl * Fl * dPs_kPa) regime = "Critical (choked)";
         else if (dPk > 0) regime = "Subcritical";
         $("liqType").value = regime;
