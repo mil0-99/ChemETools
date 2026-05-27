@@ -68,12 +68,12 @@
 
     function convert() {
       errorDiv.textContent = "";
-      const NumOne = NumOne.value;
-      const NumTwo = NumTwo.value;
+      const EnOne = NumOne.value;
+      const EnTwo = NumTwo.value;
       
       let result;
       try {
-        result = NumOne + NumTwo;
+        result = EnOne + EnTwo;
       } catch (e) {
         console.error(e);
         errorDiv.textContent = "Conversion error: " + e.message;
