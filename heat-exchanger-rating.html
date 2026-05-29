@@ -2,89 +2,414 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Test Page</title>
+  <title>ChemEng Tools – Heat Exchanger Rating (ε–NTU)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="website-style.css">
 </head>
 <body>
+  <!-- Shared navigation -->
   <div id="tool-nav-container"></div>
   <script>
-    // Load shared navbar from tool-nav.html
     (function () {
-      var container = document.getElementById("tool-nav-container");
-      if (!container) return;
-      fetch("tool-nav.html")
-        .then(function (res) { return res.text(); })
-        .then(function (html) {
-          container.innerHTML = html;
-        })
-        .catch(function (err) {
-          console.error("Failed to load navigation:", err);
-        });
+      const c = document.getElementById("tool-nav-container");
+      if (!c) return;
+      fetch("tool-nav.html").then(r => r.text()).then(h => c.innerHTML = h)
+        .catch(err => console.error("Nav load failed:", err));
     })();
   </script>
+
   <main>
     <div class="container">
-      <div class="scroll-x">
-        <table>
-          <tr>
-            <td>
-              <div>
-                <label for="number1">Number 1</label>
-                <input id="number1" type="number" step="any" placeholder="Enter value" />
-              </div>
-            </td>
-            <td>
-              <div>
-                <label for="number2">Number 2</label>
-                <input id="number2" type="number" step="any" placeholder="Enter value" />
-              </div>
-            </td>
-          </tr>  
-          <tr>
-            <td>
-              <label for="result">Result:</label>
-              <div id="result" class="result">input values to add</div>
-              <div id="error" class="error"></div>
-            </td>
-          </tr>
+      <div class="app">
+        <h2>Heat Exchanger Rating – Effectiveness–NTU</h2>
+        <p>
+          Rate a two‑stream heat exchanger from inlet temperatures, mass flow rates, heat capacities, overall U, and area.
+          Supports counter‑current and co‑current (1–1) arrangements. Units are selectable beside each field.
+        </p>
+
+        <!-- 1) Geometry & overall U -->
+        <h3>1) Geometry & Overall Coefficient</h3>
+        <div class="scroll-x">
+          <table>
+            <tr>
+              <th style="width:38%;">Quantity</th>
+              <th>Value</th>
+              <th style="width:22%;">Unit</th>
+              <th>Notes</th>
+            </tr>
+            <tr>
+              <td>Overall heat transfer coefficient (U)</td>
+              <td><input type="number" id="U" step="any" placeholder=""></td>
+              <td><select id="u_U"></select></td>
+              <td>Base: W/(m²·K)</td>
+            </tr>
+            <tr>
+              <td>Heat transfer area (A)</td>
+              <td><input type="number" id="A" step="any" placeholder=""></td>
+              <td><select id="u_A"></select></td>
+              <td>Base: m²</td>
+            </tr>
+            <tr>
+              <td>Flow arrangement</td>
+              <td>
+                <select id="flowArrangement">
+                  <option value="counter">Counter‑current (1–1)</option>
+                  <option value="co">Co‑current (1–1)</option>
+                </select>
+              </td>
+              <td><span class="muted">—</span></td>
+              <td>Extend later for multi‑pass P–P charts</td>
+            </tr>
           </table>
         </div>
-        <button id="convertBtn">Convert</button>
+
+        <!-- 2) Stream data -->
+        <h3>2) Stream Data</h3>
+        <div class="scroll-x">
+          <table>
+            <tr>
+              <th>Side</th>
+              <th>Mass flow (ṁ)</th>
+              <th>Unit</th>
+              <th>Heat capacity (Cp)</th>
+              <th>Unit</th>
+              <th>Inlet temperature (T<sub>in</sub>)</th>
+              <th>Unit</th>
+            </tr>
+            <tr>
+              <td>Hot</td>
+              <td><input type="number" id="mHot" step="any" placeholder=""></td>
+              <td><select id="u_mHot"></select></td>
+              <td><input type="number" id="cpHot" step="any" placeholder=""></td>
+              <td><select id="u_cpHot"></select></td>
+              <td><input type="number" id="Th_in" step="any" placeholder=""></td>
+              <td><select id="u_Th_in"></select></td>
+            </tr>
+            <tr>
+              <td>Cold</td>
+              <td><input type="number" id="mCold" step="any" placeholder=""></td>
+              <td><select id="u_mCold"></select></td>
+              <td><input type="number" id="cpCold" step="any" placeholder=""></td>
+              <td><select id="u_cpCold"></select></td>
+              <td><input type="number" id="Tc_in" step="any" placeholder=""></td>
+              <td><select id="u_Tc_in"></select></td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Optional: known outlet (rating sometimes fixes one outlet) -->
+        <h3>3) Optional Known Outlet (if specified)</h3>
+        <p class="muted">
+          If you supply either T<sub>h,out</sub> or T<sub>c,out</sub>, the tool checks consistency with ε–NTU result (within tolerance)
+          and prefers ε–NTU to compute both outlets. Leave blank for pure rating.
+        </p>
+        <div class="scroll-x">
+          <table>
+            <tr>
+              <th style="width:38%;">Quantity</th>
+              <th>Value</th>
+              <th style="width:22%;">Unit</th>
+              <th>Notes</th>
+            </tr>
+            <tr>
+              <td>Hot outlet (optional)</td>
+              <td><input type="number" id="Th_out_given" step="any" placeholder=""></td>
+              <td><select id="u_Th_out_given"></select></td>
+              <td>Leave blank if unknown</td>
+            </tr>
+            <tr>
+              <td>Cold outlet (optional)</td>
+              <td><input type="number" id="Tc_out_given" step="any" placeholder=""></td>
+              <td><select id="u_Tc_out_given"></select></td>
+              <td>Leave blank if unknown</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- 4) Results -->
+        <h3>4) Results</h3>
+        <div class="scroll-x">
+          <table>
+            <tr>
+              <th>Result</th>
+              <th>Value</th>
+              <th>Unit</th>
+              <th>Notes</th>
+            </tr>
+            <tr>
+              <td>Capacity rates</td>
+              <td>
+                <div>Ċ<sub>h</sub> = <span id="C_hot" class="result"></span></div>
+                <div>Ċ<sub>c</sub> = <span id="C_cold" class="result"></span></div>
+                <div>C<sub>min</sub> = <span id="C_min" class="result"></span>, C<sub>max</sub> = <span id="C_max" class="result"></span></div>
+              </td>
+              <td><span class="muted">W/K</span></td>
+              <td>Ċ = ṁ·Cp (SI base)</td>
+            </tr>
+            <tr>
+              <td>Capacity ratio (C<sub>r</sub>)</td>
+              <td><span id="Cr" class="result"></span></td>
+              <td><span class="muted">—</span></td>
+              <td>C<sub>r</sub> = C<sub>min</sub>/C<sub>max</sub></td>
+            </tr>
+            <tr>
+              <td>NTU</td>
+              <td><span id="NTU" class="result"></span></td>
+              <td><span class="muted">—</span></td>
+              <td>NTU = U·A / C<sub>min</sub> (U in W/m²·K, A in m²)</td>
+            </tr>
+            <tr>
+              <td>Effectiveness (ε)</td>
+              <td><span id="eps" class="result"></span></td>
+              <td><span class="muted">—</span></td>
+              <td>Exact formulas for 1–1 counter/co‑current</td>
+            </tr>
+            <tr>
+              <td>Maximum possible heat, Q<sub>max</sub></td>
+              <td><span id="Qmax" class="result"></span></td>
+              <td><span class="muted">W</span></td>
+              <td>Q<sub>max</sub> = C<sub>min</sub> (T<sub>h,in</sub> − T<sub>c,in</sub>)</td>
+            </tr>
+            <tr>
+              <td>Heat duty, Q</td>
+              <td><span id="Q" class="result"></span></td>
+              <td><span class="muted">W</span></td>
+              <td>Q = ε · Q<sub>max</sub></td>
+            </tr>
+            <tr>
+              <td>Hot outlet temperature</td>
+              <td><input type="text" id="Th_out" class="result" readonly></td>
+              <td><select id="u_Th_out"></select></td>
+              <td>T<sub>h,out</sub> = T<sub>h,in</sub> − Q/Ċ<sub>h</sub></td>
+            </tr>
+            <tr>
+              <td>Cold outlet temperature</td>
+              <td><input type="text" id="Tc_out" class="result" readonly></td>
+              <td><select id="u_Tc_out"></select></td>
+              <td>T<sub>c,out</sub> = T<sub>c,in</sub> + Q/Ċ<sub>c</sub></td>
+            </tr>
+            <tr>
+              <td>Consistency vs. given outlet(s)</td>
+              <td><span id="consistency" class="result"></span></td>
+              <td><span class="muted">—</span></td>
+              <td>Checks |ΔT| ≤ tolerance</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="buttons-row">
+          <button id="calcBtn">Rate exchanger</button>
+          <button id="clearBtn" class="btn-secondary" type="button">Clear all</button>
+        </div>
+        <div id="error" class="error"></div>
+      </div>
+
+      <div class="app">
+        <h2>Notes</h2>
+        <ul class="note">
+          <li>Single‑phase, no phase change, constant properties, steady state.</li>
+          <li>Ċ = ṁ·Cp with SI bases: ṁ in kg/s, Cp in J/(kg·K) gives W/K.</li>
+          <li>NTU = U·A/C<sub>min</sub>. For 1–1:
+            <ul>
+              <li>Counter‑current: ε = [1 − exp(−NTU·(1 − C<sub>r</sub>))] ÷ [1 − C<sub>r</sub>·exp(−NTU·(1 − C<sub>r</sub>))]</li>
+              <li>Co‑current: ε = [1 − exp(−NTU·(1 + C<sub>r</sub>))] ÷ [1 + C<sub>r</sub>]</li>
+            </ul>
+          </li>
+          <li>Outlets from energy balance: T<sub>h,out</sub> = T<sub>h,in</sub> − Q/Ċ<sub>h</sub>, T<sub>c,out</sub> = T<sub>c,in</sub> + Q/Ċ<sub>c</sub>.</li>
+          <li>Extend later for P–P arrangements and fouling resistances if needed.</li>
+        </ul>
       </div>
     </div>
   </main>
 
-  <!-- Shared units & converters -->
+  <!-- Shared unit conversions -->
   <script src="chemeng-units.js"></script>
 
-  <!-- Page-specific UI logic -->
+  <!-- Page logic -->
   <script>
-    const NumOne = document.getElementById("number1");
-    const NumTwo = document.getElementById("number2");
-    const resultDiv = document.getElementById("result");
-    const errorDiv = document.getElementById("error");
-    const convertBtn = document.getElementById("convertBtn");
+    const $ = id => document.getElementById(id);
 
-    function convert() {
-      errorDiv.textContent = "";
-      const EnOne = NumOne.value;
-      const EnTwo = NumTwo.value;
-      
-      let result;
-      try {
-        result = EnOne + EnTwo;
-      } catch (e) {
-        console.error(e);
-        errorDiv.textContent = "Conversion error: " + e.message;
+    // Populate unit dropdowns using the shared unit database
+    function addOptions(selectId, category, defVal) {
+      const sel = $(selectId);
+      sel.innerHTML = "";
+      getUnitsForCategory(category).forEach(u => {
+        const o = document.createElement("option");
+        o.value = u.key; o.textContent = u.label;
+        sel.appendChild(o);
+      });
+      if (defVal) sel.value = defVal;
+    }
+
+    function initUnits() {
+      // U and A
+      addOptions("u_U", "Heat Transfer", "W/(m2·K)");
+      addOptions("u_A", "Area", "m2");
+
+      // Mass flow, Cp, Temperatures
+      addOptions("u_mHot",  "Mass Flow", "kg/s");
+      addOptions("u_mCold", "Mass Flow", "kg/s");
+
+      addOptions("u_cpHot",  "Heat Capacity, Entropy", "J/(kg·K)");
+      addOptions("u_cpCold", "Heat Capacity, Entropy", "J/(kg·K)");
+
+      addOptions("u_Th_in", "Temperature", "K");
+      addOptions("u_Tc_in", "Temperature", "K");
+      addOptions("u_Th_out_given", "Temperature", "K");
+      addOptions("u_Tc_out_given", "Temperature", "K");
+
+      addOptions("u_Th_out", "Temperature", "K");
+      addOptions("u_Tc_out", "Temperature", "K");
+    }
+
+    function clearAll() {
+      [
+        "U","A","mHot","mCold","cpHot","cpCold","Th_in","Tc_in","Th_out_given","Tc_out_given",
+        "C_hot","C_cold","C_min","C_max","Cr","NTU","eps","Qmax","Q",
+        "Th_out","Tc_out","consistency","error"
+      ].forEach(id => { const el = $(id); if (!el) return;
+        if (el.tagName === "SPAN") el.textContent = "";
+        else el.value = "";
+      });
+    }
+
+    function effectiveness(NTU, Cr, arrangement) {
+      if (!(Number.isFinite(NTU) && NTU >= 0 && Number.isFinite(Cr) && Cr >= 0)) return NaN;
+      if (arrangement === "counter") {
+        const denom = 1 - Cr * Math.exp(-NTU * (1 - Cr));
+        if (Math.abs(denom) < 1e-12) return NaN;
+        return (1 - Math.exp(-NTU * (1 - Cr))) / denom;
+      } else { // co-current
+        return (1 - Math.exp(-NTU * (1 + Cr))) / (1 + Cr);
+      }
+    }
+
+    function rateExchanger() {
+      $("error").textContent = "";
+
+      // Read inputs
+      const U_in = parseFloat($("U").value);
+      const A_in = parseFloat($("A").value);
+      const mHot_in = parseFloat($("mHot").value);
+      const mCold_in = parseFloat($("mCold").value);
+      const cpHot_in = parseFloat($("cpHot").value);
+      const cpCold_in = parseFloat($("cpCold").value);
+      const Th_in_in = parseFloat($("Th_in").value);
+      const Tc_in_in = parseFloat($("Tc_in").value);
+
+      const Th_out_g = parseFloat($("Th_out_given").value);
+      const Tc_out_g = parseFloat($("Tc_out_given").value);
+
+      const uU = $("u_U").value, uA = $("u_A").value;
+      const umH = $("u_mHot").value, umC = $("u_mCold").value;
+      const ucpH = $("u_cpHot").value, ucpC = $("u_cpCold").value;
+      const uTh_in = $("u_Th_in").value, uTc_in = $("u_Tc_in").value;
+      const uTh_out_g = $("u_Th_out_given").value, uTc_out_g = $("u_Tc_out_given").value;
+
+      const uTh_out = $("u_Th_out").value, uTc_out = $("u_Tc_out").value;
+
+      const arrangement = $("flowArrangement").value;
+
+      // Minimal validation
+      const missing = [];
+      if (!Number.isFinite(U_in))   missing.push("U");
+      if (!Number.isFinite(A_in))   missing.push("A");
+      if (!Number.isFinite(mHot_in))  missing.push("ṁ_hot");
+      if (!Number.isFinite(mCold_in)) missing.push("ṁ_cold");
+      if (!Number.isFinite(cpHot_in)) missing.push("Cp_hot");
+      if (!Number.isFinite(cpCold_in))missing.push("Cp_cold");
+      if (!Number.isFinite(Th_in_in)) missing.push("T_h,in");
+      if (!Number.isFinite(Tc_in_in)) missing.push("T_c,in");
+      if (missing.length) {
+        $("error").textContent = "Please complete: " + missing.join(", ");
         return;
       }
-      resultDiv.textContent = result;      
+
+      try {
+        // Convert to SI bases
+        const U = convertUnits("Heat Transfer", U_in, uU, "W/(m2·K)"); // W/m²·K
+        const A = convertUnits("Area", A_in, uA, "m2");                 // m²
+
+        const mH = convertUnits("Mass Flow", mHot_in, umH, "kg/s");     // kg/s
+        const mC = convertUnits("Mass Flow", mCold_in, umC, "kg/s");    // kg/s
+
+        const CpH = convertUnits("Heat Capacity, Entropy", cpHot_in, ucpH, "J/(kg·K)");  // J/kg·K
+        const CpC = convertUnits("Heat Capacity, Entropy", cpCold_in, ucpC, "J/(kg·K)"); // J/kg·K
+
+        const Th_inK = convertUnits("Temperature", Th_in_in, uTh_in, "K"); // K
+        const Tc_inK = convertUnits("Temperature", Tc_in_in, uTc_in, "K"); // K
+
+        // Optional given outlets (to check only)
+        const Th_out_givenK = Number.isFinite(Th_out_g)
+          ? convertUnits("Temperature", Th_out_g, uTh_out_g, "K") : NaN;
+        const Tc_out_givenK = Number.isFinite(Tc_out_g)
+          ? convertUnits("Temperature", Tc_out_g, uTc_out_g, "K") : NaN;
+
+        // Capacity rates (W/K)
+        const C_h = mH * CpH;
+        const C_c = mC * CpC;
+
+        const Cmin = Math.min(C_h, C_c);
+        const Cmax = Math.max(C_h, C_c);
+        const Cr = Cmin > 0 ? (Cmin / Cmax) : NaN;
+
+        // NTU and effectiveness
+        const NTU = (Cmin > 0) ? (U * A / Cmin) : NaN;
+        const eps = effectiveness(NTU, Cr, arrangement);
+
+        // Qmax and Q
+        const Qmax = (Number.isFinite(Cmin) ? Cmin : NaN) * (Th_inK - Tc_inK);
+        const Q = Number.isFinite(eps) ? eps * Qmax : NaN;
+
+        // Outlets (energy balance)
+        const Th_outK = Number.isFinite(Q) && C_h > 0 ? (Th_inK - Q / C_h) : NaN;
+        const Tc_outK = Number.isFinite(Q) && C_c > 0 ? (Tc_inK + Q / C_c) : NaN;
+
+        // Fill results (report base units; outlet temps in user-chosen units)
+        $("C_hot").textContent  = Number.isFinite(C_h)  ? C_h.toFixed(3)  : "";
+        $("C_cold").textContent = Number.isFinite(C_c)  ? C_c.toFixed(3)  : "";
+        $("C_min").textContent  = Number.isFinite(Cmin) ? Cmin.toFixed(3) : "";
+        $("C_max").textContent  = Number.isFinite(Cmax) ? Cmax.toFixed(3) : "";
+        $("Cr").textContent     = Number.isFinite(Cr)   ? Cr.toFixed(5)   : "";
+        $("NTU").textContent    = Number.isFinite(NTU)  ? NTU.toFixed(5)  : "";
+        $("eps").textContent    = Number.isFinite(eps)  ? eps.toFixed(5)  : "";
+        $("Qmax").textContent   = Number.isFinite(Qmax) ? Qmax.toFixed(2) : "";
+        $("Q").textContent      = Number.isFinite(Q)    ? Q.toFixed(2)    : "";
+
+        // Outlet conversions to selected units
+        const Th_out_user = Number.isFinite(Th_outK) ? convertUnits("Temperature", Th_outK, "K", uTh_out) : NaN;
+        const Tc_out_user = Number.isFinite(Tc_outK) ? convertUnits("Temperature", Tc_outK, "K", uTc_out) : NaN;
+
+        $("Th_out").value = Number.isFinite(Th_out_user) ? Th_out_user.toFixed(3) : "";
+        $("Tc_out").value = Number.isFinite(Tc_out_user) ? Tc_out_user.toFixed(3) : "";
+
+        // Consistency check if user provided any outlet
+        let msg = "—";
+        const tolK = 0.5; // 0.5 K tolerance
+        let ok = true;
+        if (Number.isFinite(Th_out_givenK) && Number.isFinite(Th_outK)) {
+          ok = ok && (Math.abs(Th_outK - Th_out_givenK) <= tolK);
+        }
+        if (Number.isFinite(Tc_out_givenK) && Number.isFinite(Tc_outK)) {
+          ok = ok && (Math.abs(Tc_outK - Tc_out_givenK) <= tolK);
+        }
+        if (Number.isFinite(Th_out_givenK) || Number.isFinite(Tc_out_givenK)) {
+          msg = ok ? "Within tolerance" : "Mismatch (check U·A or inputs)";
+        }
+        $("consistency").textContent = msg;
+
+      } catch (e) {
+        console.error(e);
+        $("error").textContent = "Calculation error: " + (e?.message || e);
+      }
     }
-    
-    convertBtn.addEventListener("click", convert);
-    
-    // Initial state
+
+    // Wire up
+    (function init() {
+      initUnits();
+      $("calcBtn").addEventListener("click", rateExchanger);
+      $("clearBtn").addEventListener("click", clearAll);
+    })();
   </script>
 </body>
 </html>
